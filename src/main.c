@@ -1,4 +1,19 @@
+#include <mruby.h>
+#include <mruby/class.h>
+#include <mruby/compile.h>
+#include <mruby/irep.h>
+
+mrb_state *new_ruby_vm() {
+  // Start Ruby VM
+  mrb_state *mrb = mrb_open();
+
+  return mrb;
+}
+
 int main(void) {
+  mrb_state *mrb = new_ruby_vm();
+  mrb_close(mrb);
+
   // Write into the I/O registers, setting video display parameters.
   volatile unsigned char *ioram = (unsigned char *)0x04000000;
   ioram[0] = 0x03; // Use video mode 3 (in BG2, a 16bpp bitmap in VRAM)

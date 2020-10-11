@@ -103,4 +103,3 @@ vendor/mruby-2.1.1.zip: | vendor
 
 vendor:
 	mkdir -p vendor
-
