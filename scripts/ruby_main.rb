@@ -1,0 +1,1 @@
+GBA.run_demo

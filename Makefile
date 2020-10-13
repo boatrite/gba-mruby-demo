@@ -2,9 +2,12 @@
 # Project
 #
 BUILD_DIR = build
+SCRIPT_DIR = scripts
+SCRIPTS = ruby_main.rb
+SCRIPT_BYTECODE_DIR = $(BUILD_DIR)/bytecode
 
 SRC_DIR = src
-SRCS = main.c
+SRCS = main.c $(SCRIPTS:.rb=.c)
 OBJS = $(SRCS:.c=.o)
 
 all: gba_release gba_debug
@@ -64,6 +67,9 @@ $$($(1)_ELF): $$($(1)_OBJS) vendor/mruby-2.1.1/build/gameboyadvance/lib/libmruby
 $$($(1)_DIR)/%.o: $$(SRC_DIR)/%.c | $$($(1)_DIR) vendor/mruby-2.1.1
 	$$(CC) -c $$(CFLAGS) $$($(1)_CFLAGS) -o $$@ $$<
 
+$$($(1)_DIR)/%.o: $$(SCRIPT_BYTECODE_DIR)/%.c | $$($(1)_DIR) vendor/mruby-2.1.1
+	$$(CC) -c $$(CFLAGS) $$($(1)_CFLAGS) -o $$@ $$<
+
 $$($(1)_DIR):
 	mkdir -p $$@
 
@@ -80,6 +86,19 @@ info:
 	$(info $(call gba_build_template,REL,release))
 
 .PHONY: gba_info
+
+#
+# Scripting
+#
+$(SCRIPT_BYTECODE_DIR)/%.c: $(SCRIPT_DIR)/%.rb | $(SCRIPT_BYTECODE_DIR)
+	./vendor/mruby-2.1.1/bin/mrbc -B$(patsubst $(SCRIPT_BYTECODE_DIR)/%.c,%,$@) -o $@ $<
+
+# Keep bytecode files after task runs. These are normally deleted since they
+# are identified as intermediary.
+.PRECIOUS: $(SCRIPT_BYTECODE_DIR)/%.c
+
+$(SCRIPT_BYTECODE_DIR):
+	mkdir -p $@
 
 #
 # Vendor
