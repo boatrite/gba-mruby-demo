@@ -50,7 +50,10 @@ vba_$(2): $$($(1)_ROM)
 
 gba_$(2): $$($(1)_ROM)
 
-.PHONY: vba_$(2) gba_$(2)
+flash_$(2): flasher/config-flash.ini $$($(1)_ROM)
+	cd flasher/ && sudo ./GBxCart_RW_Flasher_v1.37/GBxCart_RW_Console_Flasher_v1.37/gbxcart_rw_flasher_v1.37 ../$$($(1)_ROM)
+
+.PHONY: vba_$(2) gba_$(2) flash_$(2)
 
 $$($(1)_ROM): $$($(1)_ELF)
 	$$(OBJCOPY) -v -O binary $$< $$@ && gbafix $$@
@@ -103,3 +106,31 @@ vendor/mruby-2.1.1.zip: | vendor
 
 vendor:
 	mkdir -p vendor
+
+#
+# Flashcart tools
+#
+# Note: flash_release and flash_debug are defined dynamically above which
+# perform the actual flashing.
+#
+flasher_clean:
+	rm -f flasher/config.ini
+	rm -r flasher
+
+.PHONY: flasher_clean
+
+# We need to run the flasher without any arguments once in order to configure it
+flasher/config-flash.ini: flasher/GBxCart_RW_Flasher_v1.37/GBxCart_RW_Console_Flasher_v1.37/gbxcart_rw_flasher_v1.37
+	cd flasher/ && ./GBxCart_RW_Flasher_v1.37/GBxCart_RW_Console_Flasher_v1.37/gbxcart_rw_flasher_v1.37
+
+flasher/GBxCart_RW_Flasher_v1.37/GBxCart_RW_Console_Flasher_v1.37/gbxcart_rw_flasher_v1.37: | flasher/GBxCart_RW_Flasher_v1.37
+	cd flasher/GBxCart_RW_Flasher_v1.37/GBxCart_RW_Console_Flasher_v1.37/ && make
+
+flasher/GBxCart_RW_Flasher_v1.37: flasher/GBxCart_RW_Flasher_v1.37.zip
+	unzip ./flasher/GBxCart_RW_Flasher_v1.37.zip -d ./flasher/
+
+flasher/GBxCart_RW_Flasher_v1.37.zip: | flasher
+	wget -O flasher/GBxCart_RW_Flasher_v1.37.zip https://shop.insidegadgets.com/wp-content/uploads/2018/05/GBxCart_RW_Flasher_v1.37.zip
+
+flasher:
+	mkdir -p flasher
